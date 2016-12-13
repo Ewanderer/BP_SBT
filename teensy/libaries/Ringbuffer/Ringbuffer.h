@@ -1,7 +1,7 @@
 #pragma once
 
 template<class T,unsigned size>
-class ringbuffer
+class Ringbuffer
 {
 	
 	T buffer[size];
@@ -10,8 +10,8 @@ public:
 	ringbuffer(){
 		head = 0;
 		tail = 0;
-		for (int i = 0; i < size;i++)
-			buffer[i]=T();
+		/*for (int i = 0; i < size;i++)
+			buffer[i]=T();*/
 	}
 	
 	//returns true if sucessful
