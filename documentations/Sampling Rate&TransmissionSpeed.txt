@@ -1,0 +1,9 @@
+Our Transmission will be using the frequencies between 16-20khz.
+Following the Nyquist-Shannon sampling theorem we need to take our samples at a frequencie of 40khz.
+For each channel of transmission we need 4 frequency bins and we want 4 channels of transmission.
+FFT needs 20/0.25=80 Bins, resulting into 160 values to measure.
+But FFT can only work with 2^n input values, so we choose 128 bins or 256 input values.
+This results in a total of 6 channels of transmission.
+To take 256 Samples at 40khz, we need ~6.4ms. 
+For reliable communication we send a single signal for 12.8ms. This leaves us, after subtracting the Identification Signals, with 9 byte per second.
+Ideal we only need 6,4ms to calculate our FFT and managing the serial connection on Teensy to garuntee permament work.

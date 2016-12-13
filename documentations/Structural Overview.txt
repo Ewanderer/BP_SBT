@@ -1,0 +1,6 @@
+Our Teensy programm uses 3 interrupts:
+	1. Reading of our Microphone every 0.25ms.
+	2. Setting the current frequency.
+	3. Generation of the signal tone(this is done via the framework)
+
+Our main routine calculates the FFT and interprets the results based on our protocol, while also keeping in touch via the serial interface with our PC.
