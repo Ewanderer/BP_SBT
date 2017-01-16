@@ -1,0 +1,39 @@
+Our Teensy is controlled by a PC connected via a Serial Interface(Baud=9600)
+Teensy is listening for incoming commands, whenever it has downtime(i.e. recording a sample) or if it's buffer for outgoing transmissions is empty.
+Our PC is always listening and sending if its buffer is not emtpy.
+Because we don't want to wait endlessly on incoming transmissions  via the serial port on PC, we excpect a inital symbol(on the PC any symbol except 0).
+All Transmissions are written in bytearrays, with the first byte being by a byte giving the length in byte of the transmission, followd a identifier for the type of transmission(i.E. status, error or transmission)
+After that we are sending the Information
+
+Our Signals from the Teensy to the PC:
+1:		Initialized Teensy and starting to search for Transmission Channel
+2 X:	Initialized Communication on Channel X.
+3 X:	Found Sender on Channl X, is send while looking for own Channel and afterwards.
+4 X:	Lost Sender on Channel X, is send after not recieving identification for 1 second. 
+5 X, Y:	Recieved Byte Y on Channel X.
+6: 		Sending Buffer full, is send then Buffer is full.
+7 X: 	Error X.
+8 [X]:	Current Status is [X]->see Status below	
+
+Error-Codes:
+0 - Missing or defect Microphone.
+1 - Recieving Buffer is full.
+2 - Incomplete serial communiaction<-timeout while recieving a command.
+3 - Incorrect Command, i.E. recieving Send-Command while looking for Channel of Transmission.
+4 - Unkown Command
+
+Status Structure:
+1. Mode of Operation, see OperationModes.txt
+2. Channel of Transmission, -1 if still looking.
+3. Free Slots in the sender_buffer.
+4. Free Slots in the Sample_Buffer
+
+ 
+ 
+Our Signal from the PC to the Teensy:
+1: 		Serial connection established, procede with looking for Channel.
+2:		Send Current Status
+3:		Stop all Services until recieving (1) again.
+4 [X]:	Send [X] via Sound.
+
+		

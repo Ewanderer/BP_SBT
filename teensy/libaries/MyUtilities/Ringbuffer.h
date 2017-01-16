@@ -1,3 +1,4 @@
+# author: Jordan Eichner
 #pragma once
 
 template<class T,unsigned size>
@@ -24,15 +25,23 @@ public:
 		return false;
 	}
 
-	//return true if sucessful
-	bool pop(T* ref){
+	//return next element, check if available first!
+	T pop(){
+		T result=T();
 		if (head != tail){
-			*ref = buffer[tail];
+			result = buffer[tail];
 			tail = (tail + 1) % (size+1);
-			return true;
+			
 		}
-		return false;
-		
+		return result;
+	}
+	
+	bool able(){
+		return (head != tail);
+	}
+	
+	int rem_slots(){
+		return 0;		
 	}
 
 };
