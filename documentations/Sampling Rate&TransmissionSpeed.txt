@@ -1,3 +1,4 @@
+#Outdated as of now.
 Our Transmission will be using the frequencies between 16-20khz.
 Following the Nyquist-Shannon sampling theorem we need to take our samples at a frequencie of 40khz.
 For each channel of transmission we need 4 frequency bins and we want 4 channels of transmission.

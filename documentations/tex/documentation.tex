@@ -22,10 +22,9 @@ Wireless communication relies most of the time on creating a electromagnetic wav
 \\Our Hardware consist of a Teensy 3.1 with a microphone and a speaker, one for each Sender and connceted to a PC via a USB cable.
 I will create a new protocol for audio transmission, as well as communication between Teensy and PC. 
 \\This Project is only a proof of concept and was reduced to a minimum 2 device network with minimal range due to Hardware limitations after an initial possible upscaling solution, which included manual maximum sending frequency, number of channels, minimum channel frequency and much more: The Microphone can't pick up the signals, if the source is not close enough and the Teensy has not enough processing power to analyze properly with high sampling rates, without the sample buffer becoming full, because calculation and serial communication are taking to much time.
-\\This setup also requires a more or less noise free enviorment(i.e. no whistling, loud speech) and lossfree transmission is not guaranteed, because there is no checksum or confirmation process, which could induce a second send.(This is due to limited speed of transmission) There won't be a PC to PC protocol to manage channel reservation, identification of transmitted data(i.e String or Image) and the minimum transmission speed will be awully slow if needed.
-\\Instead of the approach of amplitude modulation, which is used in modems, this project will be using frequency keying, which means, that certain frequencies are linked with a symbol(i.e. low bit). The transmission will be continous sine waves of these specific frequencies.
-\\The inital idea involved the usage of a fast fouier transform algorithm to scan transmission for certain frequencies, but after that proved to be a) time expensive and b) resulted in a heap of seemingly random data, everything was reduced to a much lighter analysis, that is explained in the documentation. It constructs the ideal sine wave for each point in the sample and for each frequency and compares that to the other points of the sample. 
-\\The PC Teensy communication is a simple protocol, where the Teensy is a slave, that does sampling, analysis and interpreting the signals, while the PC handels general operation of the Teensy. This includes stopping and starting of general operation, choosing the channel for own transmission. The PC also catches and handels errors thrown from the device and gives some manual control over certain aspects of the Teensy, see documentation for further details. 
+\\This setup also requires a more or less noise free enviorment(i.e. no whistling, loud speech) and lossfree transmission is not guaranteed, because there is no checksum or confirmation process, which could induce a second send.(This is due to limited speed of transmission) There won't be a PC to PC protocol to manage, identification of transmitted data(i.e String or Image) and the minimum transmission speed will be awully slow if needed.
+\\Instead of the approach of amplitude modulation, which were used in modems, this project will be using frequency keying, which means, that certain frequencies are linked with a symbol(i.e. low bit). The transmission will be continous sine waves of these specific frequencies.
+\\The inital idea involved the usage of a fast fouier transform algorithm to scan transmission for certain frequencies, but after that proved to be a) time expensive and b) resulted in a heap of seemingly random data, everything was reduced to a much lighter analysis, that is explained in the documentation. It measures the wavelength by identifying the distance between the maxima within a sample. From this the programm can derive the frequency of the signal. 
 
 \chapter{Protocol of Audio Transmission}
 There are 2 main ways to transmitt Information via Sound. The first is the keying of symbols to amplitudes. This is hard to produce on Teensy, as there is no good method to control volume of our speakers and the microphone is not very good at picking up quiet noises. The other method is the keying of symbols to specific frequencies. For this proof of concept I limited myself to transmission via 3 signals on three frequencies.
@@ -34,10 +33,10 @@ There are 2 main ways to transmitt Information via Sound. The first is the keyin
 \item Identification, this symbol seperates single bits.
 \item High Bit, see low bit.
 \end{enumerate}
-To take in noise from the hardware, as well as time needed to record a sample, the Teensy sends a signal for about 50ms.
+To take in noise from the hardware, as well as time needed to record a sample, the Teensy sends a signal for about 500ms.
 
 \chapter{Serial Protocol}
-The Teensy is connected to the PC. It awaits for a first Byte, before starting to record. All bytes, that got send from the PC, are transmitted as Signals, while all recieved bytes get send to the PC.
+The Teensy is connected to the PC. It awaits for a first message, before starting to record signals. All bytes, that got send from the PC after the inital Data are transmitted as signals, while all recieved bytes get send to the PC.
 
 \chapter{View of Teensy}
 \section{Hardware}
@@ -56,6 +55,7 @@ The Teensy is programmed via the Arduino IDE with its specific libary Teensyduin
 As specified above the Teensys communicate via sound within a given spectrum, using different frequencies for their 3 signals (hold,high and low). The Nyquist–Shannon sampling theorem states, that we need a sampling rate of at least double the to be sampled signal frequencie to use it for later applications like FFT. So we have a maximum sending Frequencie called $F_{max}hz$ and a sampling frequency $F_{sampling}hz=2F_{max}$. FFT divides its input into a number of $n$ bins, each representing $\frac{F_{sampling}}{n}hz$. This input needs a length of $2*n$. To take $2*n$ samples we need $\frac{n*2}{F_{sampling}}s$. This is the time window in which we need to analyze a sample and doing other stuff, like serial communication and audio output. Although I no longer use FFT, I still take samples of $2*n$ to analyze them, because of this time window.
 
 \subsection{History}
+The following to approaches were implemented but failed to produce any useful results and therefore were disregarded.
 \subsubsection{FFT}
 At first it was planned to use fast fouier transformation to search in a measured sample for a signal. In a first try I made use of a FHT libary written for the Ardunio Framework. After I constructed the surrounding framework for sampeling and pC communication, it turned out that the libary was not compatible with Teensy 3.1 Hardware because of different asembler specifications. So it got thrown out and replaced with KISSFFT, a libary written in C, that at least looked functional on Teensy.
 A few weeks were spend to fit the runtime of FFT into the time window of the sampling. Everything seemed ok, until the first test, where the framework started to act up as FFT started to produce complety random results. After some tweaking with no results, I had to throw it in the gargabe and looked for a much simpler solution.
@@ -104,26 +104,18 @@ This module consists of 2 parts:
 \end{itemize}
 
 \section{Sound Generation}
-We use a second IntervalTimer that produces a sine wave at the given frequency $f$, by switching through the different values for a digital write at a fixed interval $\frac{1}{f}s$.
+The ardunio libary has the tone() command, that produces sinus waves of a specific frequency. A second IntervalTimer is used to switch to the next signal at a fixed Interval.
 
 \section{Communication with PC}
 For the protocol see above.
-\\In the main routine we handle ingoing data directly as they come.
-\\For outgoing data we use a ringbuffer to store it, while in the main routine we send its content ensuring that errors within an interrupt a full serial buffer doesn't slow down it's progress.
+\\In the main routine we handle ingoing data directly as they come and convert it into a series of single bits.
+\\Full Bytes extracted from audio readings will immediately send to the PC via the serial connection.
 
 \section{Specification for Sound Transmission for this Project}
 We have 3 frequencies: 5khz for low bit, 6.3khz for identy and 8khz for high bit.
 
 \chapter{View of PC Side}
-The PC uses a simple Python(v.3.6.0) program, using the libaries pySerial and TkInter.
-\begin{itemize}
-\item The program runs on 2 threads: $message_{grabbing}, message_{handling}$.
-\item Data between the first two thread is done via a Queue.
-\item In the main thread runs the GUI loop.
-\item Its content is updated by $message_{handling}$.
-\item Commands for the Teensy are also Queued and then sended at the end of a $message_{handling}$ loop.
-\item The program shuts down, when the GUI is closed.
-\end{itemize} 
+The PC uses the Ardunio IDE internal serial monitor. The configurations are 19200 Baud and no new line at the end of a transmission.
 
 \chapter{History of Project}
 \begin{description}
