@@ -28,54 +28,23 @@ I will create a new protocol for audio transmission, as well as communication be
 \\The PC Teensy communication is a simple protocol, where the Teensy is a slave, that does sampling, analysis and interpreting the signals, while the PC handels general operation of the Teensy. This includes stopping and starting of general operation, choosing the channel for own transmission. The PC also catches and handels errors thrown from the device and gives some manual control over certain aspects of the Teensy, see documentation for further details. 
 
 \chapter{Protocol of Audio Transmission}
-There are 2 main ways to transmitt Information via Sound. The first is the keying of symbols to amplitudes. This is hard to produce on Teensy, as there is no good method to control volume of our speakers and the microphone is not very good at picking up quiet noises. The other method is the keying of symbols to specific frequencies. For this proof of concept I limited myself to 2 devices and therefor 2 channels of transmission. Each Channel had 3 Symbols and therefor 3 frequencies. 
+There are 2 main ways to transmitt Information via Sound. The first is the keying of symbols to amplitudes. This is hard to produce on Teensy, as there is no good method to control volume of our speakers and the microphone is not very good at picking up quiet noises. The other method is the keying of symbols to specific frequencies. For this proof of concept I limited myself to transmission via 3 signals on three frequencies.
 \begin{enumerate}
 \item Low Bit, the Teensy would assemble 8 bits to a Byte before sending it to the PC.
-\item Identification, this symbol seperates to data bits, as well as reserving the channel for the Teensy.
+\item Identification, this symbol seperates single bits.
 \item High Bit, see low bit.
 \end{enumerate}
-As described in the section about the signal analysis we divide the signal into sample of a specific length. Each signal is sended for double this time window. This way the Teensy either finds:
-\begin{enumerate}
-\item B and I or I and B. B is either low or high
-\item B and B.
-\item I and I.
-\end{enumerate}
-If we drop every second sample, the Teensy receives additional time for analysis as well as ensuring, that it never picks up a data bit twice. Based on the cycle a Teensy is operating in, the Teensy need to adjust its limits(see $L_2$) as its pick up a signal or switch its cycle of dropping(here done via a serial command).
+To take in noise from the hardware, as well as time needed to record a sample, the Teensy sends a signal for about 50ms.
 
 \chapter{Serial Protocol}
-The following is used for communication between Teensy and the connected PC as a controller. To synchronize the flow of transmission the Teensy awaits the first byte from the PC, before starting its services.
-\section{To Teensy}
-All communication is done by directly writing bytes. 
-\begin{description}
-\item[1]Stops the device.
-\item[2]Restarts the device.
-\item[3, X]Start Sending on Channel X.
-\item[4, X]Send Byte X.
-\item[5]Switch Cycle of dropped Samples.
-\end{description}
-In the first iterations this protocol handeld much more stuff, like frequencies, number of channels, but it got thrown out, to simplefy the proof of concept.
-
-
-\section{To PC}
-The Teensy uses its internal $println()$ function. This output is in utf-8. The Arguments are seperated by ','.
-\begin{description}
-\item[1,X]Found Channel X.
-\item[2,X,Y]Received Byte Y on Channel X.
-\item[3,X]Error with Code X occured, see below.
-\end{description}
-The following are the Error Codes.
-\begin{description}
-\item[1]Sample buffer full
-\item[2]Outgoing buffer full.
-\item[3]Serial buffer full.
-\end{description}
+The Teensy is connected to the PC. It awaits for a first Byte, before starting to record. All bytes, that got send from the PC, are transmitted as Signals, while all recieved bytes get send to the PC.
 
 \chapter{View of Teensy}
 \section{Hardware}
 \begin{itemize}
-\item Arduino KY-038 Microphone sound sensor module
 \item Teensy 3.1
-\item A speaker system
+\item Arduino KY-038 Microphone sound sensor module, connected on pin 17.
+\item A speaker system, connected via pin 7.
 \end{itemize}
 
 \section{Software}
@@ -124,6 +93,8 @@ The only thing remaining is to find the limit $L_2$ for $S_f$ to identify a clea
 \end{itemize}
 The lookup for $\sin$ and $\arcsin$ is really costly for teensy, because of that we only construct sin waves from every $9^{th}$ sample and we are ignoring all channels for identifications.
 
+\subsection{Current Analysis via Intervall Identification}
+The primary reading of the microphone is the signal, if there is one. As such a full analysis over the spectrum is not necessary. As such the easiest way to identify the frequency of the recording is by looking at the wave length. This programm uses the distance measured in time between to local maxima and converts this into the Frequency.
 
 \section{Sampling}
 This module consists of 2 parts:
@@ -141,7 +112,7 @@ For the protocol see above.
 \\For outgoing data we use a ringbuffer to store it, while in the main routine we send its content ensuring that errors within an interrupt a full serial buffer doesn't slow down it's progress.
 
 \section{Specification for Sound Transmission for this Project}
-We have 2 channels. Using the following the frequencies (in this order: $L_0, I_0, H_0, L_1, I_1, H_1$): $f_0=600hz, f_1=680hz, f_2=760hz, f_3=840hz, f_4=920hz, f_5=1000hz$. We have a sampling rate of $F_{sampling}=4400hz$. $L_1=0.03$. Sample Size: $n=256$. Error Limit: $l_1=0.03$
+We have 3 frequencies: 5khz for low bit, 6.3khz for identy and 8khz for high bit.
 
 \chapter{View of PC Side}
 The PC uses a simple Python(v.3.6.0) program, using the libaries pySerial and TkInter.

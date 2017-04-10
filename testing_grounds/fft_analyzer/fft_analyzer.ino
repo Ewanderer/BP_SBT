@@ -16,6 +16,7 @@ unsigned long sampeltime=0;
 
 void read_mic() {
   samples[sample_buff_head][current_sample] = (int32_t)(analogRead(A3)>>3); 
+  Serial.println(samples[sample_buff_head][current_sample]);
   summa+=samples[sample_buff_head][current_sample];
   current_sample++;
   if (current_sample == sample_size) {
@@ -78,7 +79,7 @@ void loop() {
    //if(abs(freq_data[114].r)<100&&abs(freq_data[114].i)<100){
 
     sqr=(pow((float)freq_data[114].r,2)+pow((float)freq_data[114].i,2));
-    Serial.println(sqr);
+    //Serial.println(sqr);
    //}
   /* 
    Serial.print((freq_data[114].r));

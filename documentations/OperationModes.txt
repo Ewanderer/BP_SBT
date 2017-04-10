@@ -1,5 +1,0 @@
-Mode is an internal variable, that defines the general behaviour of the Teensy.
-0 - Not Initialized.
-1 - Initialized internal, waiting for Serial Connection
-2 - Running, read only
-3 - Full Operation

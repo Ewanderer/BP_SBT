@@ -3,8 +3,6 @@
 \contentsline {section}{\numberline {1.1}Motivation}{5}
 \contentsline {chapter}{\numberline {2}Protocol of Audio Transmission}{7}
 \contentsline {chapter}{\numberline {3}Serial Protocol}{9}
-\contentsline {section}{\numberline {3.1}To Teensy}{9}
-\contentsline {section}{\numberline {3.2}To PC}{9}
 \contentsline {chapter}{\numberline {4}View of Teensy}{11}
 \contentsline {section}{\numberline {4.1}Hardware}{11}
 \contentsline {section}{\numberline {4.2}Software}{11}
@@ -14,6 +12,7 @@
 \contentsline {subsubsection}{FFT}{11}
 \contentsline {subsubsection}{Analysis via Trigonomy}{12}
 \contentsline {subsubsection}{Runtime}{12}
+\contentsline {subsection}{\numberline {4.3.3}Current Analysis via Intervall Identification}{13}
 \contentsline {section}{\numberline {4.4}Sampling}{13}
 \contentsline {section}{\numberline {4.5}Sound Generation}{13}
 \contentsline {section}{\numberline {4.6}Communication with PC}{13}
